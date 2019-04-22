@@ -1,6 +1,8 @@
 import json
 from flask import Flask, request
 from db import db, Assignment, Class, User
+import requests
+
 
 app = Flask(__name__)
 db_filename = 'cms.db'
@@ -16,6 +18,73 @@ with app.app_context():
 @app.route('/')
 def root():
     return 'Hello world!'
+
+def get_courses(roster, subject, course_no):
+
+    base_url = 'https://classes.cornell.edu/api/2.0/search/classes.json?'
+    roster = 'roster=' + roster
+    subject = 'subject=' + subject
+
+    url = base_url + roster + '&' + subject
+
+    #
+    # print(url)
+    # print(url)
+    # print(url)
+    # print(url)
+    # print(url)
+    # print(url)
+    # print(url)
+    # print(url)
+    # print(url)
+
+    r = requests.get(url)
+
+    data = r.json()
+
+    courses = data['data']['classes']
+
+    # "catalogNbr": "2800" find the course with the matching course number
+    for course in courses:
+        # print(course)
+        # print("NEXT COURSE")
+        # print(course['catalogNbr'])
+        print(course['catalogNbr'])
+        if course['catalogNbr'] == course_no:
+            print("FOUND THE COURSE")
+            print("FOUND THE COURSE")
+            print("FOUND THE COURSE")
+            print("FOUND THE COURSE")
+            print("FOUND THE COURSE")
+            return course.json()
+
+    return "not found"
+
+
+@app.route('/submit/', methods=['POST'])
+# @app.route('/api/classes/', methods=['POST'])
+def create_class():
+    post_body = json.loads(request.data)
+    print(post_body)
+
+    roster = post_body['semester'] + str(post_body['year'])
+    subject = post_body['subject']
+    course_no = post_body['course_no']
+
+    cornell_data = get_courses(roster, subject, course_no)
+    print(cornell_data)
+
+
+
+
+    # db.session.add(new_class)
+    #     # db.session.commit()
+    return json.dumps({'success': True, 'data': cornell_data}), 201
+
+
+
+
+
 
 # @app.route('/api/classes/')
 # def get_classes():
