@@ -2,24 +2,29 @@ import json
 from flask import Flask, request
 from db import db, Assignment, Class, User
 import requests
-
+import course_roster_api as api
 
 app = Flask(__name__)
-db_filename = 'cms.db'
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ECHO'] = True
+# pretty sure the db stuff here is trash for now
+# db_filename = 'cms.db'
+#
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_ECHO'] = True
+#
+# db.init_app(app)
+# with app.app_context():
+#     db.create_all()
+#
 
-db.init_app(app)
-with app.app_context():
-    db.create_all()
 
 @app.route('/')
 def root():
     return 'Hello world!'
 
-def get_courses(roster, subject, course_no):
+
+def get_reqs(roster, subject, course_no):
 
     base_url = 'https://classes.cornell.edu/api/2.0/search/classes.json?'
     roster = 'roster=' + roster
@@ -27,155 +32,57 @@ def get_courses(roster, subject, course_no):
 
     url = base_url + roster + '&' + subject
 
-    #
-    # print(url)
-    # print(url)
-    # print(url)
-    # print(url)
-    # print(url)
-    # print(url)
-    # print(url)
-    # print(url)
-    # print(url)
-
     r = requests.get(url)
 
     data = r.json()
 
     courses = data['data']['classes']
 
-    # "catalogNbr": "2800" find the course with the matching course number
+    # need to find the course number in the very long list
     for course in courses:
-        # print(course)
-        # print("NEXT COURSE")
         # print(course['catalogNbr'])
-        print(course['catalogNbr'])
-        if course['catalogNbr'] == course_no:
-            print("FOUND THE COURSE")
-            print("FOUND THE COURSE")
-            print("FOUND THE COURSE")
-            print("FOUND THE COURSE")
-            print("FOUND THE COURSE")
-            return course.json()
+        # print(course_no)
+        if int(course['catalogNbr']) == course_no:
+            return course['catalogDistr']
 
-    return "not found"
+    return "class was not found.. probably user error"
 
 
-@app.route('/submit/', methods=['POST'])
+@app.route('/api/dust/', methods=['POST'])
 # @app.route('/api/classes/', methods=['POST'])
 def create_class():
     post_body = json.loads(request.data)
     print(post_body)
 
+    requirements_fulfilled = []
+
+    for req in post_body:
+        print(req)
+        roster = req['semester'] + str(req['year'])
+        subject = req['subject']
+        course_no = req['course_no']
+        req = get_reqs(roster, subject, course_no)
+        requirements_fulfilled.append(req)
+    return json.dumps({'success': True, 'data': requirements_fulfilled}), 201
+
+
+@app.route('/api/numbers/', methods=['POST'])
+def get_numbers():
+
+    post_body = json.loads(request.data)
     roster = post_body['semester'] + str(post_body['year'])
     subject = post_body['subject']
-    course_no = post_body['course_no']
 
-    cornell_data = get_courses(roster, subject, course_no)
-    print(cornell_data)
+    return json.dumps({'success': True, 'data': api.get_course_numbers(roster, subject)})
 
 
+@app.route('/api/subjects/', methods=['POST'])
+def get_subjects():
 
+    post_body = json.loads(request.data)
+    roster = post_body['semester'] + str(post_body['year'])
+    return json.dumps({'success': True, 'data': api.get_subjects(roster)})
 
-    # db.session.add(new_class)
-    #     # db.session.commit()
-    return json.dumps({'success': True, 'data': cornell_data}), 201
-
-
-
-
-
-
-# @app.route('/api/classes/')
-# def get_classes():
-#     classes = Class.query.all()
-#     res = {
-#         'success': True,
-#         'data': [c.serialize() for c in classes]
-#     }
-#     return json.dumps(res), 200
-#
-# @app.route('/api/classes/', methods=['POST'])
-# def create_class():
-#     post_body = json.loads(request.data)
-#     new_class = Class(
-#         code=post_body.get('code'),
-#         name=post_body.get('name')
-#     )
-#     db.session.add(new_class)
-#     db.session.commit()
-#     return json.dumps({'success': True, 'data': new_class.serialize()}), 201
-#
-# @app.route('/api/class/<int:class_id>/')
-# def get_class(class_id):
-#     optional_class = Class.query.filter_by(id=class_id).first()
-#     if optional_class is not None:
-#         return json.dumps({'success': True, 'data': optional_class.serialize()}), 200
-#     return json.dumps({'success': False, 'error': 'Class not found'}), 404
-#
-# @app.route('/api/class/<int:class_id>/', methods=['DELETE'])
-# def delete_class(class_id):
-#     optional_class = Class.query.filter_by(id=class_id).first()
-#     if optional_class is not None:
-#         db.session.delete(optional_class)
-#         db.session.commit()
-#         return json.dumps({'success': True, 'data': optional_class.serialize()}), 200
-#     return json.dumps({'success': False, 'error': 'Class not found'}), 404
-#
-# @app.route('/api/users/', methods=['POST'])
-# def create_user():
-#     post_body = json.loads(request.data)
-#     new_user = User(
-#         name=post_body.get('name'),
-#         netid=post_body.get('netid'),
-#     )
-#     db.session.add(new_user)
-#     db.session.commit()
-#     return json.dumps({'success': True, 'data': new_user.serialize()}), 201
-#
-# @app.route('/api/user/<int:user_id>/')
-# def get_user(user_id):
-#     optional_user = Class.query.filter_by(id=user_id).first()
-#     if optional_user is not None:
-#         return json.dumps({'success': True, 'data': optional_user.serialize()}), 200
-#     return json.dumps({'success': False, 'data': 'User not found'}), 200
-#
-# @app.route('/api/class/<int:class_id>/add/', methods=['POST'])
-# def add_user_to_class(class_id):
-#     post_body = json.loads(request.data)
-#     user_type = post_body.get('type', '')
-#     user_id = post_body.get('user_id', '')
-#
-#     optional_user = User.query.filter_by(id=user_id).first()
-#     optional_class = Class.query.filter_by(id=class_id).first()
-#
-#     if optional_user is None or optional_class is None:
-#         return json.dumps({'success': False, 'error': 'Class or User not found'}), 404
-#
-#     if user_type == 'student':
-#         optional_class.students.append(optional_user)
-#     else:
-#         optional_class.instructors.append(optional_user)
-#
-#     db.session.add(optional_class)
-#     db.session.commit()
-#     return json.dumps({'success': True, 'data': optional_class.serialize()}), 200
-#
-# @app.route('/api/class/<int:class_id>/assignment/', methods=['POST'])
-# def create_assignment(class_id):
-#     optional_class = Class.query.filter_by(id=class_id).first()
-#     if optional_class is None:
-#         return json.dumps({'success': False, 'error': 'Class not found'}), 404
-#
-#     post_body = json.loads(request.data)
-#     new_assignment = Assignment(
-#         class_id=class_id,
-#         description=post_body.get('description'),
-#         due_date=post_body.get('due_date'),
-#     )
-#     db.session.add(new_assignment)
-#     db.session.commit()
-#     return json.dumps({'success': True, 'data': new_assignment.serialize()}), 201
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
