@@ -60,9 +60,9 @@ def create_class():
         print(req)
         roster = req['semester'] + str(req['year'])
         subject = req['subject']
-        course_no = req['course_no']
-        req = get_reqs(roster, subject, course_no)
-        requirements_fulfilled.append(req)
+        course_no = req['number']
+        requirement = get_reqs(roster, subject, course_no)
+        requirements_fulfilled.append({roster + ' ' + subject + ' ' + str(course_no): requirement})
     return json.dumps({'success': True, 'data': requirements_fulfilled}), 201
 
 
