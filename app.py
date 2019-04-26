@@ -24,30 +24,6 @@ def root():
     return 'Hello world!'
 
 
-def get_reqs(roster, subject, course_no):
-
-    base_url = 'https://classes.cornell.edu/api/2.0/search/classes.json?'
-    roster = 'roster=' + roster
-    subject = 'subject=' + subject
-
-    url = base_url + roster + '&' + subject
-
-    r = requests.get(url)
-
-    data = r.json()
-
-    courses = data['data']['classes']
-
-    # need to find the course number in the very long list
-    for course in courses:
-        # print(course['catalogNbr'])
-        # print(course_no)
-        if int(course['catalogNbr']) == course_no:
-            return course['catalogDistr']
-
-    return "class was not found.. probably user error"
-
-
 @app.route('/api/dust/', methods=['POST'])
 # @app.route('/api/classes/', methods=['POST'])
 def create_class():
@@ -61,9 +37,13 @@ def create_class():
         roster = req['semester'] + str(req['year'])
         subject = req['subject']
         course_no = req['number']
-        requirement = get_reqs(roster, subject, course_no)
+        requirement = api.get_reqs(roster, subject, course_no)
         requirements_fulfilled.append({roster + ' ' + subject + ' ' + str(course_no): requirement})
     return json.dumps({'success': True, 'data': requirements_fulfilled}), 201
+
+    # for x in range(0, 1000):
+    #     print(x)
+    #     api.get_subjects("FA19")
 
 
 @app.route('/api/numbers/', methods=['POST'])

@@ -6,6 +6,44 @@ FIle lto abstract away Cornell's Course Roster API
 
 import requests
 
+
+def get_reqs(roster, subject, course_no):
+    base_url = 'https://classes.cornell.edu/api/2.0/search/classes.json?'
+    roster = 'roster=' + roster
+    subject = 'subject=' + subject
+
+    url = base_url + roster + '&' + subject
+
+    r = requests.get(url)
+
+    data = r.json()
+
+    courses = data['data']['classes']
+
+    # need to find the course number in the very long list
+    for course in courses:
+        # print(course['catalogNbr'])
+        # print(course_no)
+        arr = []
+        if int(course['catalogNbr']) == course_no:
+            try:
+                arr.append(course['catalogDistr'])
+            except Exception as e:
+                arr.append("")
+            try:
+                arr.append(course['catalogSatisfiesReq'])
+            except Exception as e:
+                arr.append("")
+            try:
+                arr.append(course['catalogBreadth'])
+            except Exception as e:
+                arr.append("")
+
+            return arr
+
+    return "class was not found.. probably user error"
+
+
 def get_course_numbers(roster, subject):
 
     base_url = 'https://classes.cornell.edu/api/2.0/search/classes.json?'
@@ -30,6 +68,8 @@ def get_subjects(roster):
     url = base_url + roster
     print(url)
     resp = requests.get(url)
+
+    print(resp.json())
     data = resp.json()
     return data['data']
 
