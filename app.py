@@ -1,7 +1,5 @@
 import json
 from flask import Flask, request
-from db import db, Assignment, Class, User
-import requests
 import course_roster_api as api
 
 app = Flask(__name__)
@@ -32,13 +30,17 @@ def create_class():
 
     requirements_fulfilled = []
 
-    for req in post_body:
+    for req in post_body['courses']:
         print(req)
         roster = req['semester'] + str(req['year'])
         subject = req['subject']
         course_no = req['number']
         requirement = api.get_reqs(roster, subject, course_no)
-        requirements_fulfilled.append({roster + ' ' + subject + ' ' + str(course_no): requirement})
+        # requirements_fulfilled.append({roster + ' ' + subject + ' ' + str(course_no): requirement})
+        requirements_fulfilled.append({
+            'course': roster + ' ' + subject + ' ' + str(course_no),
+            'distributions': requirement
+        })
     return json.dumps({'success': True, 'data': requirements_fulfilled}), 201
 
     # for x in range(0, 1000):
@@ -56,13 +58,19 @@ def get_numbers():
     return json.dumps({'success': True, 'data': api.get_course_numbers(roster, subject)})
 
 
-@app.route('/api/subjects/', methods=['POST'])
-def get_subjects():
+@app.route('/api/subject/')
+def hello():
+    return "hello"
 
-    post_body = json.loads(request.data)
-    roster = post_body['semester'] + str(post_body['year'])
+
+@app.route('/api/subjects/<string:roster>/', methods=['GET'])
+def get_subjects(roster):
+
+    # post_body = json.loads(request.data)
+    # roster = post_body['semester'] + str(post_body['year'])
     return json.dumps({'success': True, 'data': api.get_subjects(roster)})
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run()

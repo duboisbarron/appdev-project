@@ -41,7 +41,7 @@ def get_reqs(roster, subject, course_no):
 
             return arr
 
-    return "class was not found.. probably user error"
+    return ["Invalid Course"]
 
 
 def get_course_numbers(roster, subject):
@@ -71,6 +71,10 @@ def get_subjects(roster):
 
     print(resp.json())
     data = resp.json()
-    return data['data']
+
+    subjects = []
+    for subject in data['data']['subjects']:
+        subjects.append(subject['value'])
+    return subjects
 
 
