@@ -48,7 +48,7 @@ def create_class():
     #     api.get_subjects("FA19")
 
 
-@app.route('/api/numbers/<string:roster/<string:subject/', methods=['GET'])
+@app.route('/api/numbers/<string:roster/<string:subject>/', methods=['GET'])
 def get_numbers(roster, subject):
 
     # post_body = json.loads(request.data)
