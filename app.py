@@ -48,12 +48,12 @@ def create_class():
     #     api.get_subjects("FA19")
 
 
-@app.route('/api/numbers/', methods=['POST'])
-def get_numbers():
+@app.route('/api/numbers/<string:roster/<string:subject/', methods=['GET'])
+def get_numbers(roster, subject):
 
-    post_body = json.loads(request.data)
-    roster = post_body['semester'] + str(post_body['year'])
-    subject = post_body['subject']
+    # post_body = json.loads(request.data)
+    # roster = post_body['semester'] + str(post_body['year'])
+    # subject = post_body['subject']
 
     return json.dumps({'success': True, 'data': api.get_course_numbers(roster, subject)}), 201
 
