@@ -1,0 +1,8 @@
+Flask==1.0.2
+Flask-SQLAlchemy==2.3.2
+gunicorn==19.9.0
+httpie==0.9.9
+pipenv==2018.11.26
+psycopg2==2.8.1
+requests==2.21.0
+
