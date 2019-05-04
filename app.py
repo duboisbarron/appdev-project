@@ -55,7 +55,7 @@ def get_numbers():
     roster = post_body['semester'] + str(post_body['year'])
     subject = post_body['subject']
 
-    return json.dumps({'success': True, 'data': api.get_course_numbers(roster, subject)})
+    return json.dumps({'success': True, 'data': api.get_course_numbers(roster, subject)}), 201
 
 
 @app.route('/api/subject/')
@@ -68,7 +68,7 @@ def get_subjects(roster):
 
     # post_body = json.loads(request.data)
     # roster = post_body['semester'] + str(post_body['year'])
-    return json.dumps({'success': True, 'data': api.get_subjects(roster)})
+    return json.dumps({'success': True, 'data': api.get_subjects(roster)}), 201
 
 
 if __name__ == '__main__':
